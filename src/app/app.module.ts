@@ -1,6 +1,9 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -19,6 +22,11 @@ import { SharedModule } from './theme/shared/shared.module';
 import { ConfigurationComponent } from './theme/layout/admin/configuration/configuration.component';
 import { GuestComponent } from './theme/layout/guest/guest.component';
 
+// Import auth components for state management and HTTP interceptor
+import { authReducer } from './store/auth/auth.reducer';
+import { AuthEffects } from './store/auth/auth.effects';
+import { AuthInterceptor } from './core/interceptors/auth.interceptors';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -35,8 +43,19 @@ import { GuestComponent } from './theme/layout/guest/guest.component';
     ConfigurationComponent,
     GuestComponent
   ],
-  imports: [BrowserModule, AppRoutingModule, SharedModule, BrowserAnimationsModule],
-  providers: [NavigationItem],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    SharedModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    StoreModule.forRoot({ auth: authReducer }),  // Configure NgRx Store
+    EffectsModule.forRoot([AuthEffects])  // Configure Effects for Auth
+  ],
+  providers: [
+    NavigationItem,
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }  // Configure Auth Interceptor
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}
